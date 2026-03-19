@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="description" content="AI-powered Lost & Found for campuses. Gemini Vision matches items automatically."/>
+  <title>FindIt — AI Lost & Found</title>
+  <link rel="stylesheet" href="css/app.css"/>
+</head>
+<body>
+
+<!-- ── Navigation ─────────────────────────────────────────── -->
+<nav class="nav">
+  <div class="nav-inner">
+    <a class="logo" href="index.html">
+      <span class="logo-dot"></span>FindIt
+    </a>
+    <div class="nav-links">
+      <a href="index.html" class="active">Home</a>
+      <a href="pages/found.html">Report Found</a>
+      <a href="pages/lost.html">Report Lost</a>
+      <a href="pages/admin.html">Admin</a>
+    </div>
+    <button class="nav-pill" onclick="location.href='pages/lost.html'">I lost something →</button>
+  </div>
+</nav>
+
+<!-- ── Hero ───────────────────────────────────────────────── -->
+<section class="hero">
+  <div class="hero-eyebrow">
+    <span>●</span> Powered by Google Gemini Vision
+  </div>
+  <h1 class="hero-title">
+    Lost items find<br/>their <em>owners</em> now.
+  </h1>
+  <p class="hero-sub">
+    No WhatsApp spam. No admin middleman. Gemini reads every photo, extracts names and IDs,
+    matches found items to lost reports — and notifies the owner silently.
+  </p>
+  <div class="hero-cta">
+    <a href="pages/found.html" class="btn btn-primary">I found something</a>
+    <a href="pages/lost.html"  class="btn btn-ghost">I lost something</a>
+  </div>
+  <div class="hero-stats">
+    <div>
+      <div class="hero-stat-val" id="statFound">—</div>
+      <div class="hero-stat-lbl">Items Reported Found</div>
+    </div>
+    <div>
+      <div class="hero-stat-val" id="statLost">—</div>
+      <div class="hero-stat-lbl">Active Lost Reports</div>
+    </div>
+    <div>
+      <div class="hero-stat-val" id="statMatches">—</div>
+      <div class="hero-stat-lbl">AI Matches Made</div>
+    </div>
+    <div>
+      <div class="hero-stat-val" id="statRate">—</div>
+      <div class="hero-stat-lbl">Recovery Rate</div>
+    </div>
+  </div>
+</section>
+
+<!-- ── How It Works ───────────────────────────────────────── -->
+<div class="how-strip">
+  <div class="section">
+    <div class="section-label">How it works</div>
+    <h2 class="section-title">Three steps.<br/>Zero admin overhead.</h2>
+    <div class="steps-row">
+      <div class="step-box">
+        <div class="step-num">01</div>
+        <div class="step-tag">Gemini Vision</div>
+        <div class="step-title">AI reads the item</div>
+        <p class="step-desc">
+          Upload a photo. Gemini extracts the object type, visible text (names, roll numbers, phone numbers), colour, brand, and condition — automatically.
+          <br/><br/>
+          Example: <em style="color:var(--amber)">"Black leather wallet. Student ID: Arjun Sharma, MUJ 2021BCE0124."</em>
+        </p>
+      </div>
+      <div class="step-box">
+        <div class="step-num">02</div>
+        <div class="step-tag">Confidence Scoring</div>
+        <div class="step-title">Every item gets scored</div>
+        <p class="step-desc">
+          When a new submission arrives, AI compares it against all existing reports using category, colour, extracted text, brand, and location — each weighted by reliability.
+          <br/><br/>
+          Each comparison produces a <strong style="color:var(--text)">0–100% confidence score.</strong>
+        </p>
+      </div>
+      <div class="step-box">
+        <div class="step-num">03</div>
+        <div class="step-tag">Smart Notification</div>
+        <div class="step-title">Owner notified silently</div>
+        <p class="step-desc">
+          If score ≥ 65%, the owner gets a direct notification with the finder's contact.
+          <br/><br/>
+          No public posts. No admin. No spam. Just a faster recovery — while both parties' privacy is protected until the match is confirmed.
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Live Feed ───────────────────────────────────────────── -->
+<div class="section">
+  <div class="feed-header">
+    <div>
+      <div class="section-label">Live feed</div>
+      <h2 class="section-title" style="margin-bottom:0">Recent listings</h2>
+    </div>
+    <div class="filter-group">
+      <button class="filter-chip on"  data-f="all">All</button>
+      <button class="filter-chip"     data-f="found">Found</button>
+      <button class="filter-chip"     data-f="lost">Lost</button>
+      <button class="filter-chip"     data-f="matched">Matched</button>
+    </div>
+  </div>
+  <div class="item-grid" id="feed">
+    <div class="empty-grid">
+      <div class="empty-grid-icon">📡</div>
+      <p>Connecting to live data…</p>
+    </div>
+  </div>
+</div>
+
+<!-- ── Footer ─────────────────────────────────────────────── -->
+<footer style="border-top:1px solid var(--border);padding:2rem;text-align:center;font-size:0.78rem;color:var(--text-3)">
+  FindIt — AI Lost & Found &nbsp;·&nbsp; Google Gemini + Firebase
+</footer>
+
+<script type="module">
+  import { listenFeed, getAnalytics, archiveExpired } from "./js/modules/db.js";
+  import { renderCard } from "./js/modules/ui.js";
+
+  let allItems = [], activeFilter = "all";
+
+  // Stats
+  getAnalytics().then(s => {
+    document.getElementById("statFound").textContent   = s.totalFound;
+    document.getElementById("statLost").textContent    = s.activeLost;
+    document.getElementById("statMatches").textContent = s.matches;
+    document.getElementById("statRate").textContent    = s.recoveryRate + "%";
+  }).catch(()=>{});
+
+  archiveExpired().catch(()=>{});
+
+  // Real-time feed
+  listenFeed(items => {
+    allItems = items;
+    render();
+  });
+
+  function render() {
+    const feed  = document.getElementById("feed");
+    let   items = activeFilter === "all"     ? allItems :
+                  activeFilter === "matched" ? allItems.filter(i=>i.status==="matched") :
+                  allItems.filter(i=>i.type===activeFilter);
+
+    if (!items.length) {
+      feed.innerHTML = `<div class="empty-grid"><div class="empty-grid-icon">📭</div><p>No ${activeFilter==="all"?"":activeFilter} items yet.</p></div>`;
+      return;
+    }
+    feed.innerHTML = items.map(renderCard).join("");
+  }
+
+  // Filter chips
+  document.querySelectorAll(".filter-chip").forEach(btn => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll(".filter-chip").forEach(b=>b.classList.remove("on"));
+      btn.classList.add("on");
+      activeFilter = btn.dataset.f;
+      render();
+    });
+  });
+</script>
+</body>
+</html>

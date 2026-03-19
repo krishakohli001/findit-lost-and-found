@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Report Found Item — FindIt</title>
+  <link rel="stylesheet" href="../css/app.css"/>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <a class="logo" href="../index.html"><span class="logo-dot"></span>FindIt</a>
+    <div class="nav-links">
+      <a href="../index.html">Home</a>
+      <a href="found.html" class="active">Report Found</a>
+      <a href="lost.html">Report Lost</a>
+      <a href="admin.html">Admin</a>
+    </div>
+  </div>
+</nav>
+
+<div class="form-page">
+<div class="form-wrap">
+
+  <span class="form-tag found">You found something</span>
+  <h1 class="form-head">Good human. 🙌<br/>Tell us what you found.</h1>
+  <p class="form-subhead">Upload a photo — Gemini Vision will extract all the details automatically. Takes 30 seconds.</p>
+
+  <!-- ── Photo upload ──────────────────────────────────────── -->
+  <div class="field">
+    <label class="field-label">📸 Photo of the item <span style="color:var(--amber)">*</span></label>
+    <div class="drop-zone" id="dropZone">
+      <input type="file" id="fileInput" accept="image/*"/>
+      <div class="drop-icon">📷</div>
+      <div class="drop-text">Drop image here or click to browse</div>
+      <div class="drop-hint">JPG · PNG · WEBP · up to 10 MB</div>
+      <img id="preview" class="drop-preview" alt="Preview"/>
+    </div>
+  </div>
+
+  <!-- ── AI Analysis Panel ─────────────────────────────────── -->
+  <div class="ai-panel" id="aiPanel">
+    <div class="ai-panel-head">
+      <div class="ai-spinner" id="aiSpinner"></div>
+      ✨ Gemini AI Analysis
+    </div>
+    <div class="ai-body">
+      <div class="ai-row"><span class="ai-key">Object type</span><span class="ai-val" id="aiObjectType">—</span></div>
+      <div class="ai-row"><span class="ai-key">Colour</span><span class="ai-val" id="aiColor">—</span></div>
+      <div class="ai-row"><span class="ai-key">Brand</span><span class="ai-val" id="aiBrand">—</span></div>
+      <div class="ai-row"><span class="ai-key">Material</span><span class="ai-val" id="aiMaterial">—</span></div>
+      <div class="ai-row"><span class="ai-key">Text / ID found</span><span class="ai-val highlight" id="aiText">—</span></div>
+      <div class="ai-row"><span class="ai-key">Features</span><span class="ai-val" id="aiFeatures">—</span></div>
+      <div class="ai-row"><span class="ai-key">Condition</span><span class="ai-val" id="aiCondition">—</span></div>
+      <div class="ai-row"><span class="ai-key">Description</span><span class="ai-val" id="aiDesc">—</span></div>
+    </div>
+  </div>
+
+  <!-- ── Category ──────────────────────────────────────────── -->
+  <div class="field">
+    <label class="field-label">Category <span style="color:var(--amber)">*</span></label>
+    <div class="cat-grid" id="catGrid">
+      <div class="cat-tile" data-cat="ID_card">   <span class="cat-icon-em">🪪</span>ID Card</div>
+      <div class="cat-tile" data-cat="wallet">    <span class="cat-icon-em">👛</span>Wallet</div>
+      <div class="cat-tile" data-cat="electronics"><span class="cat-icon-em">📱</span>Electronics</div>
+      <div class="cat-tile" data-cat="keys">      <span class="cat-icon-em">🔑</span>Keys</div>
+      <div class="cat-tile" data-cat="notebook">  <span class="cat-icon-em">📓</span>Notebook</div>
+      <div class="cat-tile" data-cat="bag">       <span class="cat-icon-em">🎒</span>Bag</div>
+      <div class="cat-tile" data-cat="clothing">  <span class="cat-icon-em">👕</span>Clothing</div>
+      <div class="cat-tile" data-cat="accessories"><span class="cat-icon-em">⌚</span>Accessories</div>
+      <div class="cat-tile" data-cat="other">     <span class="cat-icon-em">📦</span>Other</div>
+    </div>
+  </div>
+
+  <!-- ── Location + Contact ────────────────────────────────── -->
+  <div class="field-grid">
+    <div class="field">
+      <label class="field-label">📍 Where did you find it? <span style="color:var(--amber)">*</span></label>
+      <input class="field-input" id="location" type="text" placeholder="e.g. Library Block B, Gate 2, Canteen"/>
+    </div>
+    <div class="field">
+      <label class="field-label">📧 Your email <span style="color:var(--amber)">*</span></label>
+      <input class="field-input" id="email" type="email" placeholder="you@university.edu"/>
+    </div>
+  </div>
+  <div class="field">
+    <div class="field-hint">Your email is hidden from public view. It's shared only when a match is confirmed (≥65% confidence).</div>
+  </div>
+
+  <button class="btn btn-primary btn-full" id="submitBtn" onclick="doSubmit()">
+    Submit Found Item
+  </button>
+
+  <!-- ── Success ───────────────────────────────────────────── -->
+  <div class="success-box" id="successBox">
+    <div class="success-icon">🎉</div>
+    <div class="success-title">Submitted!</div>
+    <p class="success-sub">AI matching is running in the background. If a lost report matches yours, the owner will be notified automatically.</p>
+    <a href="../index.html" class="btn btn-ghost">Back to dashboard →</a>
+  </div>
+
+</div>
+</div><!-- /form-page -->
+
+<script type="module">
+import { analyzeImage, detectDuplicate }  from "../js/modules/gemini.js";
+import { submitFoundItem, getFoundItems } from "../js/modules/db.js";
+import { runFoundMatch }                  from "../js/modules/matcher.js";
+import { toast, setLoading, fillAIPanel } from "../js/modules/ui.js";
+
+let file = null, ai = null, cat = null;
+
+// ── Drop zone ─────────────────────────────────────────────────
+const dropZone   = document.getElementById("dropZone");
+const fileInput  = document.getElementById("fileInput");
+const preview    = document.getElementById("preview");
+
+dropZone.addEventListener("dragover",  e => { e.preventDefault(); dropZone.classList.add("over"); });
+dropZone.addEventListener("dragleave", ()=> dropZone.classList.remove("over"));
+dropZone.addEventListener("drop", e => {
+  e.preventDefault(); dropZone.classList.remove("over");
+  const f = e.dataTransfer.files[0];
+  if (f) handleFile(f);
+});
+fileInput.addEventListener("change", e => { if (e.target.files[0]) handleFile(e.target.files[0]); });
+
+async function handleFile(f) {
+  file = f;
+  preview.src           = URL.createObjectURL(f);
+  preview.style.display = "block";
+  runAnalysis(f);
+}
+
+// ── Gemini analysis ───────────────────────────────────────────
+async function runAnalysis(f) {
+  const spinner = document.getElementById("aiSpinner");
+  spinner.style.display = "inline-block";
+  document.getElementById("aiPanel").style.display = "block";
+  // Reset values
+  ["aiObjectType","aiColor","aiBrand","aiMaterial","aiText","aiFeatures","aiCondition","aiDesc"]
+    .forEach(id => { const el=document.getElementById(id); if(el) el.textContent="Analysing…"; });
+
+  try {
+    ai = await analyzeImage(f);
+    fillAIPanel(ai);
+
+    // Auto-pick category
+    if (ai.category) {
+      const tile = document.querySelector(`[data-cat="${ai.category}"]`);
+      if (tile) selectCat(tile, ai.category);
+    }
+    toast("✨ AI analysis complete", ai.description || "", "t-success");
+  } catch(err) {
+    toast("⚠️ AI analysis failed", "You can still submit manually.", "t-error");
+    ["aiObjectType","aiColor","aiBrand","aiMaterial","aiText","aiFeatures","aiCondition","aiDesc"]
+      .forEach(id => { const el=document.getElementById(id); if(el) el.textContent="—"; });
+  } finally {
+    spinner.style.display = "none";
+  }
+}
+
+// ── Category tiles ────────────────────────────────────────────
+function selectCat(tile, value) {
+  document.querySelectorAll(".cat-tile").forEach(t => t.classList.remove("picked"));
+  tile.classList.add("picked");
+  cat = value;
+}
+document.querySelectorAll(".cat-tile").forEach(tile => {
+  tile.addEventListener("click", () => selectCat(tile, tile.dataset.cat));
+});
+
+// ── Submit ────────────────────────────────────────────────────
+window.doSubmit = async function () {
+  const location = document.getElementById("location").value.trim();
+  const email    = document.getElementById("email").value.trim();
+  const btn      = document.getElementById("submitBtn");
+
+  if (!file)     return toast("⚠️ Photo required",     "Please upload a photo of the item.",   "t-error");
+  if (!cat)      return toast("⚠️ Category required",  "Please select a category.",             "t-error");
+  if (!location) return toast("⚠️ Location required",  "Where did you find it?",                "t-error");
+  if (!email)    return toast("⚠️ Email required",     "We need your email for match contact.", "t-error");
+
+  setLoading(btn, true, "Submitting…");
+
+  try {
+    // Duplicate check
+    const existing = await getFoundItems(100);
+    const dup = await detectDuplicate({ category: cat, aiAnalysis: ai }, existing).catch(()=>({isDuplicate:false}));
+    if (dup.isDuplicate) {
+      toast("⚠️ Possible duplicate", dup.reason || "This item may already be reported.", "t-match");
+      setLoading(btn, false, "Submit Found Item");
+      return;
+    }
+
+    // Save to Firestore
+    const id = await submitFoundItem({ imageFile:file, category:cat, location, contactEmail:email, aiAnalysis:ai });
+
+    // Kick off AI matching (non-blocking)
+    runFoundMatch({ id, category:cat, aiAnalysis:ai, location, type:"found" })
+      .then(results => {
+        if (results.length && results[0].score >= 65) {
+          toast("🎯 Match found!", `${Math.round(results[0].score)}% confidence — owner will be notified.`, "t-match", 7000);
+        }
+      }).catch(()=>{});
+
+    // Show success UI
+    document.getElementById("submitBtn").style.display  = "none";
+    document.getElementById("successBox").style.display = "block";
+    toast("✅ Item submitted!", "AI matching is running.", "t-success");
+
+  } catch(err) {
+    toast("❌ Submission failed", err.message, "t-error");
+    setLoading(btn, false, "Submit Found Item");
+  }
+};
+</script>
+</body>
+</html>

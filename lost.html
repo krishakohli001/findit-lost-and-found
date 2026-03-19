@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Report Lost Item — FindIt</title>
+  <link rel="stylesheet" href="../css/app.css"/>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <a class="logo" href="../index.html"><span class="logo-dot"></span>FindIt</a>
+    <div class="nav-links">
+      <a href="../index.html">Home</a>
+      <a href="found.html">Report Found</a>
+      <a href="lost.html" class="active">Report Lost</a>
+      <a href="admin.html">Admin</a>
+    </div>
+  </div>
+</nav>
+
+<div class="form-page">
+<div class="form-wrap">
+
+  <span class="form-tag lost">Lost item report</span>
+  <h1 class="form-head">Let's find it. 🔍</h1>
+  <p class="form-subhead">Upload a reference photo if you have one — it dramatically improves matching accuracy. Gemini Vision will extract details and scan all found reports instantly.</p>
+
+  <!-- ── Reference Photo ───────────────────────────────────── -->
+  <div class="field">
+    <label class="field-label">📸 Reference photo <span style="color:var(--text-3);font-weight:400">(optional but recommended)</span></label>
+    <div class="drop-zone" id="dropZone">
+      <input type="file" id="fileInput" accept="image/*"/>
+      <div class="drop-icon">📷</div>
+      <div class="drop-text">Upload a photo you took of your item</div>
+      <div class="drop-hint">From your gallery or screenshots work fine</div>
+      <img id="preview" class="drop-preview" alt="Preview"/>
+    </div>
+  </div>
+
+  <!-- ── AI Analysis Panel ─────────────────────────────────── -->
+  <div class="ai-panel" id="aiPanel">
+    <div class="ai-panel-head">
+      <div class="ai-spinner" id="aiSpinner"></div>
+      ✨ Gemini AI Analysis
+    </div>
+    <div class="ai-body">
+      <div class="ai-row"><span class="ai-key">Object type</span><span class="ai-val" id="aiObjectType">—</span></div>
+      <div class="ai-row"><span class="ai-key">Colour</span><span class="ai-val" id="aiColor">—</span></div>
+      <div class="ai-row"><span class="ai-key">Brand</span><span class="ai-val" id="aiBrand">—</span></div>
+      <div class="ai-row"><span class="ai-key">Material</span><span class="ai-val" id="aiMaterial">—</span></div>
+      <div class="ai-row"><span class="ai-key">Text / ID detected</span><span class="ai-val highlight" id="aiText">—</span></div>
+      <div class="ai-row"><span class="ai-key">Features</span><span class="ai-val" id="aiFeatures">—</span></div>
+      <div class="ai-row"><span class="ai-key">Condition</span><span class="ai-val" id="aiCondition">—</span></div>
+      <div class="ai-row"><span class="ai-key">Description</span><span class="ai-val" id="aiDesc">—</span></div>
+    </div>
+  </div>
+
+  <!-- ── Category ──────────────────────────────────────────── -->
+  <div class="field">
+    <label class="field-label">Category <span style="color:var(--amber)">*</span></label>
+    <div class="cat-grid" id="catGrid">
+      <div class="cat-tile" data-cat="ID_card">   <span class="cat-icon-em">🪪</span>ID Card</div>
+      <div class="cat-tile" data-cat="wallet">    <span class="cat-icon-em">👛</span>Wallet</div>
+      <div class="cat-tile" data-cat="electronics"><span class="cat-icon-em">📱</span>Electronics</div>
+      <div class="cat-tile" data-cat="keys">      <span class="cat-icon-em">🔑</span>Keys</div>
+      <div class="cat-tile" data-cat="notebook">  <span class="cat-icon-em">📓</span>Notebook</div>
+      <div class="cat-tile" data-cat="bag">       <span class="cat-icon-em">🎒</span>Bag</div>
+      <div class="cat-tile" data-cat="clothing">  <span class="cat-icon-em">👕</span>Clothing</div>
+      <div class="cat-tile" data-cat="accessories"><span class="cat-icon-em">⌚</span>Accessories</div>
+      <div class="cat-tile" data-cat="other">     <span class="cat-icon-em">📦</span>Other</div>
+    </div>
+  </div>
+
+  <!-- ── Description ───────────────────────────────────────── -->
+  <div class="field">
+    <label class="field-label">Describe your item <span style="color:var(--amber)">*</span></label>
+    <textarea class="field-textarea" id="description" placeholder="Be as specific as possible — colour, brand, any text written on it, unique marks, what was inside (wallet contents, keychain, etc.)…"></textarea>
+    <div class="field-hint">The more detail you give, the better Gemini can match. Mention names, roll numbers, phone numbers if on the item.</div>
+  </div>
+
+  <!-- ── Location + Contact ────────────────────────────────── -->
+  <div class="field-grid">
+    <div class="field">
+      <label class="field-label">📍 Where did you lose it?</label>
+      <input class="field-input" id="location" type="text" placeholder="Best guess — Library, Lab 3, Cafeteria…"/>
+    </div>
+    <div class="field">
+      <label class="field-label">📧 Your email <span style="color:var(--amber)">*</span></label>
+      <input class="field-input" id="email" type="email" placeholder="you@university.edu"/>
+    </div>
+  </div>
+  <div class="field">
+    <label class="field-label">📱 Phone <span style="color:var(--text-3);font-weight:400">(optional — faster contact)</span></label>
+    <input class="field-input" id="phone" type="tel" placeholder="+91 98765 43210"/>
+  </div>
+
+  <button class="btn btn-primary btn-full" id="submitBtn" onclick="doSubmit()">
+    Submit & Run AI Match →
+  </button>
+
+  <!-- ── Match Results ──────────────────────────────────────── -->
+  <div class="match-results" id="matchResults">
+    <div class="match-results-head">
+      🎯 Potential matches found
+      <span id="matchCount" style="margin-left:auto;color:var(--text-3);font-weight:400;font-size:0.78rem"></span>
+    </div>
+    <div id="matchList"></div>
+    <div style="padding:1rem 1.25rem;font-size:0.78rem;color:var(--text-3);border-top:1px solid var(--border)">
+      We'll notify you automatically if a higher-confidence match is submitted later.
+    </div>
+  </div>
+
+  <!-- ── Success (no matches) ───────────────────────────────── -->
+  <div class="success-box" id="successBox">
+    <div class="success-icon">🕐</div>
+    <div class="success-title">Report filed.</div>
+    <p class="success-sub">No existing matches found right now. We'll scan every new found-item report against yours — and email you the moment we find a match above 65% confidence.</p>
+    <a href="../index.html" class="btn btn-ghost">Back to dashboard →</a>
+  </div>
+
+</div>
+</div>
+
+<script type="module">
+import { analyzeImage }                           from "../js/modules/gemini.js";
+import { submitLostItem }                         from "../js/modules/db.js";
+import { runLostMatch }                           from "../js/modules/matcher.js";
+import { toast, setLoading, fillAIPanel, scoreClass, catEmoji } from "../js/modules/ui.js";
+
+let file = null, ai = null, cat = null;
+
+// ── Drop zone ─────────────────────────────────────────────────
+const dropZone = document.getElementById("dropZone");
+document.getElementById("fileInput").addEventListener("change", e => { if(e.target.files[0]) handleFile(e.target.files[0]); });
+dropZone.addEventListener("dragover",  e => { e.preventDefault(); dropZone.classList.add("over"); });
+dropZone.addEventListener("dragleave", ()=> dropZone.classList.remove("over"));
+dropZone.addEventListener("drop", e => { e.preventDefault(); dropZone.classList.remove("over"); if(e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]); });
+
+async function handleFile(f) {
+  file = f;
+  const p = document.getElementById("preview");
+  p.src = URL.createObjectURL(f); p.style.display="block";
+  runAnalysis(f);
+}
+
+async function runAnalysis(f) {
+  const spinner = document.getElementById("aiSpinner");
+  spinner.style.display = "inline-block";
+  document.getElementById("aiPanel").style.display = "block";
+  ["aiObjectType","aiColor","aiBrand","aiMaterial","aiText","aiFeatures","aiCondition","aiDesc"]
+    .forEach(id=>{ const el=document.getElementById(id); if(el) el.textContent="Analysing…"; });
+
+  try {
+    ai = await analyzeImage(f);
+    fillAIPanel(ai);
+    if (ai.category) {
+      const tile = document.querySelector(`[data-cat="${ai.category}"]`);
+      if (tile) { document.querySelectorAll(".cat-tile").forEach(t=>t.classList.remove("picked")); tile.classList.add("picked"); cat=ai.category; }
+    }
+    toast("✨ AI analysis done", "", "t-success");
+  } catch { toast("⚠️ AI analysis failed","Submit manually.","t-error"); }
+  finally { spinner.style.display="none"; }
+}
+
+// ── Category tiles ────────────────────────────────────────────
+document.querySelectorAll(".cat-tile").forEach(tile => {
+  tile.addEventListener("click", () => {
+    document.querySelectorAll(".cat-tile").forEach(t=>t.classList.remove("picked"));
+    tile.classList.add("picked"); cat=tile.dataset.cat;
+  });
+});
+
+// ── Submit ────────────────────────────────────────────────────
+window.doSubmit = async function() {
+  const description = document.getElementById("description").value.trim();
+  const location    = document.getElementById("location").value.trim();
+  const email       = document.getElementById("email").value.trim();
+  const phone       = document.getElementById("phone").value.trim();
+  const btn         = document.getElementById("submitBtn");
+
+  if (!cat)         return toast("⚠️ Select a category","","t-error");
+  if (!description) return toast("⚠️ Add a description","","t-error");
+  if (!email)       return toast("⚠️ Email required","","t-error");
+
+  setLoading(btn, true, "Scanning AI matches…");
+
+  try {
+    const id = await submitLostItem({ imageFile:file, category:cat, description, location, contactEmail:email, contactPhone:phone, aiAnalysis:ai });
+
+    const results = await runLostMatch({ id, category:cat, aiAnalysis:ai, description, location, type:"lost" });
+    setLoading(btn, false);
+
+    if (results.length) {
+      renderMatches(results);
+      toast(`🎯 ${results.length} potential match${results.length>1?"es":""} found!`, `Top score: ${Math.round(results[0].score)}%`, "t-match", 6000);
+    } else {
+      document.getElementById("submitBtn").style.display  = "none";
+      document.getElementById("successBox").style.display = "block";
+      toast("✅ Report filed!","You'll be notified on match.","t-success");
+    }
+  } catch(err) {
+    toast("❌ Failed", err.message, "t-error");
+    setLoading(btn, false, "Submit & Run AI Match →");
+  }
+};
+
+function renderMatches(results) {
+  const section = document.getElementById("matchResults");
+  const list    = document.getElementById("matchList");
+  document.getElementById("matchCount").textContent = `${results.length} result${results.length>1?"s":""}`;
+  section.style.display = "block";
+  document.getElementById("submitBtn").style.display = "none";
+
+  list.innerHTML = results.map(r => {
+    const item = r.item || {};
+    const ai2  = item.aiAnalysis || {};
+    const sc   = Math.round(r.score);
+    const cls  = scoreClass(sc);
+    const img  = item.imageUrl
+      ? `<img src="${item.imageUrl}" alt="match" style="width:100%;height:100%;object-fit:cover;border-radius:7px"/>`
+      : catEmoji(item.category);
+
+    return `
+      <div class="match-item">
+        <div class="match-thumb">${img}</div>
+        <div class="match-info">
+          <div class="match-name">${ai2.objectType || item.category || "Item"}</div>
+          <div class="match-detail">📍 ${item.location || "Campus"} · 🎨 ${ai2.primaryColor||"—"} ${ai2.brand?"· "+ai2.brand:""}</div>
+          ${ai2.textFound ? `<div class="match-detail" style="color:var(--amber)">📋 ${ai2.textFound}</div>` : ""}
+          <div class="match-reason">${r.reasons?.slice(0,2).join(" · ")||""}</div>
+        </div>
+        <div class="match-score-col">
+          <div class="match-score-num ${cls}">${sc}%</div>
+          <div class="match-score-lbl">${sc>=65?"notify":"match"}</div>
+        </div>
+      </div>`;
+  }).join("");
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin Dashboard — FindIt</title>
+  <link rel="stylesheet" href="../css/app.css"/>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <a class="logo" href="../index.html"><span class="logo-dot"></span>FindIt</a>
+    <div class="nav-links">
+      <a href="../index.html">Home</a>
+      <a href="found.html">Report Found</a>
+      <a href="lost.html">Report Lost</a>
+      <a href="admin.html" class="active">Admin</a>
+    </div>
+  </div>
+</nav>
+
+<div class="admin-wrap">
+
+  <!-- Header -->
+  <div style="margin-bottom:2rem;padding-bottom:1.5rem;border-bottom:1px solid var(--border);display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:1rem">
+    <div>
+      <div class="section-label">Admin Console</div>
+      <h1 style="font-family:var(--font-head);font-size:2rem;font-weight:900;letter-spacing:-0.04em">Analytics Dashboard</h1>
+    </div>
+    <div style="display:flex;gap:0.5rem">
+      <button class="btn btn-ghost btn-sm" onclick="refresh()">↻ Refresh</button>
+      <button class="btn btn-danger btn-sm" onclick="doArchive()">Archive Expired</button>
+    </div>
+  </div>
+
+  <!-- ── Stats Cards ─────────────────────────────────────────── -->
+  <div class="admin-stats-row" id="statsRow">
+    <div class="admin-stat-card">
+      <div class="asc-label">Total Found</div>
+      <div class="asc-val green" id="sFound">—</div>
+      <div class="asc-sub">items reported found</div>
+    </div>
+    <div class="admin-stat-card">
+      <div class="asc-label">Active Lost</div>
+      <div class="asc-val red" id="sLost">—</div>
+      <div class="asc-sub">open lost reports</div>
+    </div>
+    <div class="admin-stat-card">
+      <div class="asc-label">AI Matches</div>
+      <div class="asc-val amber" id="sMatches">—</div>
+      <div class="asc-sub">confirmed by Gemini</div>
+    </div>
+    <div class="admin-stat-card">
+      <div class="asc-label">Recovery Rate</div>
+      <div class="asc-val green" id="sRate">—</div>
+      <div class="asc-sub">of lost items recovered</div>
+    </div>
+    <div class="admin-stat-card">
+      <div class="asc-label">Top Category</div>
+      <div class="asc-val blue" id="sTopCat" style="font-size:1.3rem">—</div>
+      <div class="asc-sub">most reported item type</div>
+    </div>
+  </div>
+
+  <!-- ── Category Breakdown ──────────────────────────────────── -->
+  <div class="table-card" style="margin-bottom:2rem">
+    <div class="table-head">
+      <div class="table-head-title">Category breakdown</div>
+    </div>
+    <div style="padding:1.25rem 1.5rem" id="catBreakdown">
+      <div style="color:var(--text-3);font-size:0.85rem">Loading…</div>
+    </div>
+  </div>
+
+  <!-- ── All Listings Table ──────────────────────────────────── -->
+  <div class="table-card">
+    <div class="table-head">
+      <div class="table-head-title">All listings</div>
+      <div style="display:flex;gap:0.5rem;align-items:center">
+        <input id="tableSearch" class="field-input" style="width:200px;padding:0.4rem 0.75rem;font-size:0.8rem" placeholder="Search…" oninput="filterTable()"/>
+        <select id="tableFilter" class="field-select" style="width:130px;padding:0.4rem 0.75rem;font-size:0.8rem" onchange="filterTable()">
+          <option value="">All status</option>
+          <option value="active">Active</option>
+          <option value="matched">Matched</option>
+          <option value="expired">Expired</option>
+        </select>
+      </div>
+    </div>
+    <div style="overflow-x:auto">
+      <table class="admin-tbl">
+        <thead>
+          <tr>
+            <th>Type</th>
+            <th>Item</th>
+            <th>Category</th>
+            <th>AI Description</th>
+            <th>Text Extracted</th>
+            <th>Location</th>
+            <th>Match %</th>
+            <th>Status</th>
+            <th>Submitted</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="tbody">
+          <tr><td colspan="10" style="text-align:center;color:var(--text-3);padding:3rem">Loading…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div><!-- /admin-wrap -->
+
+<script type="module">
+import { getAnalytics, getAllForAdmin, deleteItem, archiveExpired } from "../js/modules/db.js";
+import { toast, catEmoji, reltime } from "../js/modules/ui.js";
+
+let allRows = [];
+
+// ── Boot ───────────────────────────────────────────────────────
+document.addEventListener("DOMContentLoaded", () => { loadStats(); loadTable(); });
+
+// ── Stats ──────────────────────────────────────────────────────
+async function loadStats() {
+  try {
+    const s = await getAnalytics();
+    document.getElementById("sFound").textContent   = s.totalFound;
+    document.getElementById("sLost").textContent    = s.activeLost;
+    document.getElementById("sMatches").textContent = s.matches;
+    document.getElementById("sRate").textContent    = s.recoveryRate + "%";
+    document.getElementById("sTopCat").textContent  = `${catEmoji(s.topCat)} ${s.topCat}`;
+
+    // Category bars
+    const maxVal = Math.max(...Object.values(s.catCount), 1);
+    document.getElementById("catBreakdown").innerHTML =
+      Object.entries(s.catCount).sort((a,b)=>b[1]-a[1]).map(([cat,count]) => `
+        <div class="cat-bar-row">
+          <div class="cat-bar-label">${catEmoji(cat)} ${cat}</div>
+          <div class="cat-bar-track"><div class="cat-bar-fill" style="width:${(count/maxVal)*100}%"></div></div>
+          <div class="cat-bar-count">${count}</div>
+        </div>`).join("") || "<div style='color:var(--text-3);font-size:0.85rem'>No data yet.</div>";
+  } catch(e) { console.error(e); }
+}
+
+// ── Table ──────────────────────────────────────────────────────
+async function loadTable() {
+  try {
+    allRows = await getAllForAdmin();
+    renderTable(allRows);
+  } catch(e) {
+    document.getElementById("tbody").innerHTML = `<tr><td colspan="10" style="color:var(--red);padding:1rem">${e.message}</td></tr>`;
+  }
+}
+
+function renderTable(rows) {
+  if (!rows.length) {
+    document.getElementById("tbody").innerHTML = `<tr><td colspan="10" style="text-align:center;color:var(--text-3);padding:3rem">No items.</td></tr>`;
+    return;
+  }
+  document.getElementById("tbody").innerHTML = rows.map(item => {
+    const isFound = item.type === "found";
+    const ai      = item.aiAnalysis || {};
+    const sc      = item.matchScore;
+    const thumb   = item.imageUrl
+      ? `<div class="tbl-thumb"><img src="${item.imageUrl}" alt=""/></div>`
+      : `<div class="tbl-thumb">${catEmoji(item.category)}</div>`;
+
+    return `<tr>
+      <td><span class="chip chip-${isFound?"found":"lost"}">${isFound?"Found":"Lost"}</span></td>
+      <td><div style="display:flex;align-items:center;gap:0.6rem;min-width:160px">
+        ${thumb}
+        <div><div class="tbl-name">${ai.objectType||"—"}</div><div class="tbl-sub">${ai.primaryColor||""} ${ai.brand?`· ${ai.brand}`:""}</div></div>
+      </div></td>
+      <td>${catEmoji(item.category)} ${item.category||"—"}</td>
+      <td style="max-width:200px;font-size:0.78rem;color:var(--text-2)">${ai.description||"—"}</td>
+      <td style="font-size:0.78rem;color:var(--amber)">${ai.textFound||"—"}</td>
+      <td style="font-size:0.78rem">${item.location||"—"}</td>
+      <td>${sc!=null?`<span style="font-weight:700;color:${sc>=65?"var(--green)":sc>=40?"var(--amber)":"var(--text-3)"}">${sc}%</span>`:"—"}</td>
+      <td><span class="chip chip-${item.status}">${item.status}</span></td>
+      <td style="font-size:0.75rem;color:var(--text-3);white-space:nowrap">${reltime(item.submittedAt)}</td>
+      <td><button class="btn btn-danger btn-sm" onclick="remove('${item._col}','${item.id}','${item.imagePath||""}')">Delete</button></td>
+    </tr>`;
+  }).join("");
+}
+
+// ── Search/filter ──────────────────────────────────────────────
+window.filterTable = function() {
+  const q   = document.getElementById("tableSearch").value.toLowerCase();
+  const sta = document.getElementById("tableFilter").value;
+  renderTable(allRows.filter(item => {
+    const ai = item.aiAnalysis||{};
+    const text = [ai.objectType,ai.description,ai.textFound,item.category,item.location].join(" ").toLowerCase();
+    return (!q || text.includes(q)) && (!sta || item.status===sta);
+  }));
+};
+
+// ── Delete ─────────────────────────────────────────────────────
+window.remove = async function(col, id, imgPath) {
+  if (!confirm("Permanently delete this item?")) return;
+  try {
+    await deleteItem(col, id, imgPath||null);
+    toast("✅ Deleted","","t-success");
+    allRows = allRows.filter(i=>i.id!==id);
+    filterTable();
+    loadStats();
+  } catch(e) { toast("❌ Error",e.message,"t-error"); }
+};
+
+// ── Archive ────────────────────────────────────────────────────
+window.doArchive = async function() {
+  try {
+    await archiveExpired();
+    toast("✅ Archived","Expired items archived.","t-success");
+    refresh();
+  } catch(e) { toast("❌ Error",e.message,"t-error"); }
+};
+
+window.refresh = function() { loadStats(); loadTable(); };
+</script>
+</body>
+</html>
