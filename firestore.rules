@@ -2,8 +2,6 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Public read on listings — anyone can browse
-    // Write allowed for demo/hackathon — restrict with auth in production
     match /found_items/{doc} {
       allow read: if true;
       allow create: if true;
@@ -24,7 +22,6 @@ service cloud.firestore {
       allow update: if true;
     }
 
-    // Block everything else
     match /{document=**} {
       allow read, write: if false;
     }
