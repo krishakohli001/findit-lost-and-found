@@ -22,7 +22,6 @@
 
 <div class="admin-wrap">
 
-  <!-- Header -->
   <div style="margin-bottom:2rem;padding-bottom:1.5rem;border-bottom:1px solid var(--border);display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:1rem">
     <div>
       <div class="section-label">Admin Console</div>
@@ -34,7 +33,6 @@
     </div>
   </div>
 
-  <!-- ── Stats Cards ─────────────────────────────────────────── -->
   <div class="admin-stats-row" id="statsRow">
     <div class="admin-stat-card">
       <div class="asc-label">Total Found</div>
@@ -63,7 +61,6 @@
     </div>
   </div>
 
-  <!-- ── Category Breakdown ──────────────────────────────────── -->
   <div class="table-card" style="margin-bottom:2rem">
     <div class="table-head">
       <div class="table-head-title">Category breakdown</div>
@@ -73,7 +70,6 @@
     </div>
   </div>
 
-  <!-- ── All Listings Table ──────────────────────────────────── -->
   <div class="table-card">
     <div class="table-head">
       <div class="table-head-title">All listings</div>
@@ -110,7 +106,7 @@
     </div>
   </div>
 
-</div><!-- /admin-wrap -->
+</div>
 
 <script type="module">
 import { getAnalytics, getAllForAdmin, deleteItem, archiveExpired } from "../js/modules/db.js";
@@ -118,10 +114,8 @@ import { toast, catEmoji, reltime } from "../js/modules/ui.js";
 
 let allRows = [];
 
-// ── Boot ───────────────────────────────────────────────────────
 document.addEventListener("DOMContentLoaded", () => { loadStats(); loadTable(); });
 
-// ── Stats ──────────────────────────────────────────────────────
 async function loadStats() {
   try {
     const s = await getAnalytics();
@@ -131,7 +125,6 @@ async function loadStats() {
     document.getElementById("sRate").textContent    = s.recoveryRate + "%";
     document.getElementById("sTopCat").textContent  = `${catEmoji(s.topCat)} ${s.topCat}`;
 
-    // Category bars
     const maxVal = Math.max(...Object.values(s.catCount), 1);
     document.getElementById("catBreakdown").innerHTML =
       Object.entries(s.catCount).sort((a,b)=>b[1]-a[1]).map(([cat,count]) => `
@@ -143,7 +136,6 @@ async function loadStats() {
   } catch(e) { console.error(e); }
 }
 
-// ── Table ──────────────────────────────────────────────────────
 async function loadTable() {
   try {
     allRows = await getAllForAdmin();
@@ -184,7 +176,6 @@ function renderTable(rows) {
   }).join("");
 }
 
-// ── Search/filter ──────────────────────────────────────────────
 window.filterTable = function() {
   const q   = document.getElementById("tableSearch").value.toLowerCase();
   const sta = document.getElementById("tableFilter").value;
@@ -194,8 +185,7 @@ window.filterTable = function() {
     return (!q || text.includes(q)) && (!sta || item.status===sta);
   }));
 };
-
-// ── Delete ─────────────────────────────────────────────────────
+  
 window.remove = async function(col, id, imgPath) {
   if (!confirm("Permanently delete this item?")) return;
   try {
@@ -207,7 +197,6 @@ window.remove = async function(col, id, imgPath) {
   } catch(e) { toast("❌ Error",e.message,"t-error"); }
 };
 
-// ── Archive ────────────────────────────────────────────────────
 window.doArchive = async function() {
   try {
     await archiveExpired();
