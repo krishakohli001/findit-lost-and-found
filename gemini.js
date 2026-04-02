@@ -1,17 +1,7 @@
-// ================================================================
-//  js/modules/gemini.js
-//  All Gemini Vision API calls + prompt engineering
-//
-//  GET YOUR KEY: https://aistudio.google.com/app/apikey
-//  For production → move key to Cloud Function (never expose client-side)
-//  For hackathon demo → client-side is fine
-// ================================================================
-
-const GEMINI_KEY = "YOUR_GEMINI_API_KEY"; // ← replace this
+const GEMINI_KEY = "YOUR_GEMINI_API_KEY"; 
 const BASE_URL   = "https://generativelanguage.googleapis.com/v1beta/models";
-const MODEL      = "gemini-1.5-flash";    // fast + free tier available
+const MODEL      = "gemini-1.5-flash";   
 
-// ── Helper: file → base64 ─────────────────────────────────────
 async function toBase64(file) {
   return new Promise((res, rej) => {
     const r = new FileReader();
@@ -21,7 +11,6 @@ async function toBase64(file) {
   });
 }
 
-// ── Helper: call Gemini ───────────────────────────────────────
 async function callGemini(parts, maxTokens = 512, temp = 0.1) {
   const endpoint = `${BASE_URL}/${MODEL}:generateContent?key=${GEMINI_KEY}`;
   const body = {
@@ -34,22 +23,17 @@ async function callGemini(parts, maxTokens = 512, temp = 0.1) {
   return data.candidates?.[0]?.content?.parts?.[0]?.text || "";
 }
 
-// ── Helper: parse JSON from Gemini response ───────────────────
 function parseJSON(text, fallback = {}) {
   try {
     return JSON.parse(text.replace(/```json|```/g, "").trim());
   } catch {
-    // try extracting first {...} block
+
     const m = text.match(/\{[\s\S]*\}/);
     if (m) { try { return JSON.parse(m[0]); } catch {} }
     return fallback;
   }
 }
 
-// ================================================================
-//  PROMPT 1 — Image Understanding
-//  Extracts structured object metadata from a photo
-// ================================================================
 export async function analyzeImage(imageFile) {
   const b64  = await toBase64(imageFile);
   const mime = imageFile.type || "image/jpeg";
@@ -89,10 +73,6 @@ Fields (use null if not visible or not applicable):
   });
 }
 
-// ================================================================
-//  PROMPT 2 — Semantic Matching
-//  Scores how likely two items are the same object
-// ================================================================
 export async function scoreMatch(lostItem, foundItem) {
   const prompt = `You are a matching engine for a university Lost & Found system.
 
@@ -130,10 +110,6 @@ Return ONLY valid JSON:
   return parseJSON(raw, { score: 0, confidence: "low", shouldNotify: false, reasons: [], recommendation: "Unable to score." });
 }
 
-// ================================================================
-//  PROMPT 3 — Duplicate Detection
-//  Checks if a new submission is a repost of an existing listing
-// ================================================================
 export async function detectDuplicate(newItem, existingItems) {
   if (!existingItems.length) return { isDuplicate: false };
 
