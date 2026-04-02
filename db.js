@@ -1,8 +1,3 @@
-// ================================================================
-//  js/modules/db.js
-//  All Firestore read/write operations
-// ================================================================
-
 import { db, storage } from "./firebase.js";
 import {
   collection, addDoc, getDocs, getDoc, doc, updateDoc,
@@ -13,13 +8,11 @@ import {
   ref, uploadBytes, getDownloadURL, deleteObject
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
 
-// ── Constants ─────────────────────────────────────────────────
 const EXPIRY_DAYS = 30;
 const FOUND_COL   = "found_items";
 const LOST_COL    = "lost_items";
 const MATCH_COL   = "matches";
 
-// ── Upload image ──────────────────────────────────────────────
 export async function uploadImage(file, folder = "items") {
   const ext      = file.name.split(".").pop() || "jpg";
   const filename = `${folder}/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
@@ -27,8 +20,6 @@ export async function uploadImage(file, folder = "items") {
   const snap     = await uploadBytes(r, file);
   return { url: await getDownloadURL(snap.ref), path: filename };
 }
-
-// ── Submit found item ─────────────────────────────────────────
 export async function submitFoundItem(data) {
   const { imageFile, category, location, contactEmail, aiAnalysis } = data;
 
@@ -49,7 +40,7 @@ export async function submitFoundItem(data) {
     imageUrl,
     imagePath,
     aiAnalysis:   aiAnalysis || null,
-    status:       "active",     // active | matched | expired
+    status:       "active",     
     matchedWith:  null,
     matchScore:   null,
     submittedAt:  serverTimestamp(),
@@ -60,7 +51,6 @@ export async function submitFoundItem(data) {
   return docRef.id;
 }
 
-// ── Submit lost item ──────────────────────────────────────────
 export async function submitLostItem(data) {
   const { imageFile, category, description, location, contactEmail, contactPhone, aiAnalysis } = data;
 
@@ -93,21 +83,18 @@ export async function submitLostItem(data) {
   return docRef.id;
 }
 
-// ── Fetch active found items ──────────────────────────────────
 export async function getFoundItems(n = 100) {
   const q    = query(collection(db, FOUND_COL), where("status","==","active"), orderBy("submittedAt","desc"), limit(n));
   const snap = await getDocs(q);
   return snap.docs.map(d => ({ id: d.id, ...d.data() }));
 }
 
-// ── Fetch active lost items ───────────────────────────────────
 export async function getLostItems(n = 100) {
   const q    = query(collection(db, LOST_COL), where("status","==","active"), orderBy("submittedAt","desc"), limit(n));
   const snap = await getDocs(q);
   return snap.docs.map(d => ({ id: d.id, ...d.data() }));
 }
 
-// ── Fetch ALL items for admin ─────────────────────────────────
 export async function getAllForAdmin() {
   const [fs, ls] = await Promise.all([
     getDocs(query(collection(db, FOUND_COL), orderBy("submittedAt","desc"))),
@@ -118,7 +105,6 @@ export async function getAllForAdmin() {
   return [...found, ...lost].sort((a,b) => (b.submittedAt?.seconds||0)-(a.submittedAt?.seconds||0));
 }
 
-// ── Record a match ────────────────────────────────────────────
 export async function recordMatch(lostId, foundId, score, recommendation) {
   await Promise.all([
     updateDoc(doc(db, LOST_COL,  lostId),  { status:"matched", matchedWith:foundId, matchScore:Math.round(score) }),
@@ -132,8 +118,6 @@ export async function recordMatch(lostId, foundId, score, recommendation) {
     })
   ]);
 }
-
-// ── Analytics ─────────────────────────────────────────────────
 export async function getAnalytics() {
   const [fs, ls, ms] = await Promise.all([
     getDocs(collection(db, FOUND_COL)),
@@ -159,7 +143,6 @@ export async function getAnalytics() {
   return { totalFound, totalLost, matches, recoveryRate, topCat, catCount, activeFound, activeLost };
 }
 
-// ── Archive expired items ─────────────────────────────────────
 export async function archiveExpired() {
   const now = Timestamp.now();
   for (const col of [FOUND_COL, LOST_COL]) {
@@ -175,7 +158,6 @@ export async function archiveExpired() {
   }
 }
 
-// ── Delete item ───────────────────────────────────────────────
 export async function deleteItem(colName, id, imagePath) {
   await deleteDoc(doc(db, colName, id));
   if (imagePath) {
@@ -183,7 +165,6 @@ export async function deleteItem(colName, id, imagePath) {
   }
 }
 
-// ── Real-time listener for feed ───────────────────────────────
 export function listenFeed(callback) {
   const qF = query(collection(db, FOUND_COL), orderBy("submittedAt","desc"), limit(30));
   const qL = query(collection(db, LOST_COL),  orderBy("submittedAt","desc"), limit(30));
@@ -197,5 +178,5 @@ export function listenFeed(callback) {
   const u1 = onSnapshot(qF, s => { F = s.docs.map(d=>({id:d.id,...d.data()})); merge(); });
   const u2 = onSnapshot(qL, s => { L = s.docs.map(d=>({id:d.id,...d.data()})); merge(); });
 
-  return () => { u1(); u2(); }; // return unsubscribe
+  return () => { u1(); u2(); }; 
 }
