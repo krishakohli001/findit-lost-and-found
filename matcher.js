@@ -1,8 +1,7 @@
 import { scoreMatch }            from "./gemini.js";
 import { getFoundItems, getLostItems, recordMatch } from "./db.js";
 
-const NOTIFY_THRESHOLD = 65; 
-
+const NOTIFY_THRESHOLD = 65;
 export async function runLostMatch(lostItem) {
   const foundItems = await getFoundItems(100);
   return runMatch(lostItem, foundItems, "found");
