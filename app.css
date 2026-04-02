@@ -1,11 +1,5 @@
-/* ============================================================
-   FindIt — AI Lost & Found  |  Global Styles
-   Aesthetic: Dark editorial, amber signal, surgical grid
-   ============================================================ */
-
 @import url('https://fonts.googleapis.com/css2?family=Cabinet+Grotesk:wght@400;500;700;800;900&family=Instrument+Sans:wght@400;500;600&display=swap');
 
-/* ── Variables ────────────────────────────────────────────── */
 :root {
   --bg:        #080810;
   --bg-1:      #0f0f1a;
@@ -41,7 +35,6 @@
   --shadow-lg: 0 8px 40px rgba(0,0,0,0.5);
 }
 
-/* ── Reset ────────────────────────────────────────────────── */
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth}
 body{
@@ -58,7 +51,6 @@ a{color:inherit;text-decoration:none}
 button{font-family:var(--font-body);cursor:pointer}
 input,textarea,select{font-family:var(--font-body)}
 
-/* ── Nav ──────────────────────────────────────────────────── */
 .nav{
   position:sticky;top:0;z-index:200;
   height:56px;
@@ -108,7 +100,6 @@ input,textarea,select{font-family:var(--font-body)}
 }
 .nav-pill:hover{opacity:0.85;transform:translateY(-1px)}
 
-/* ── Hero ─────────────────────────────────────────────────── */
 .hero{
   max-width:900px;margin:0 auto;
   padding:clamp(5rem,12vw,9rem) 2rem clamp(3rem,6vw,5rem);
@@ -167,8 +158,6 @@ input,textarea,select{font-family:var(--font-body)}
   font-weight:500;margin-top:0.3rem;
   letter-spacing:0.03em;
 }
-
-/* ── Section wrapper ──────────────────────────────────────── */
 .section{
   max-width:1280px;margin:0 auto;
   padding:5rem 2rem;
@@ -185,7 +174,6 @@ input,textarea,select{font-family:var(--font-body)}
 }
 .section-sub{color:var(--text-2);max-width:520px;font-size:0.92rem;line-height:1.7}
 
-/* ── How It Works ─────────────────────────────────────────── */
 .how-strip{background:var(--bg-1);border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
 .steps-row{
   display:grid;
@@ -220,8 +208,6 @@ input,textarea,select{font-family:var(--font-body)}
   background:var(--amber-dim);color:var(--amber);
   margin-bottom:1rem;
 }
-
-/* ── Feed section ─────────────────────────────────────────── */
 .feed-header{
   display:flex;align-items:flex-end;
   justify-content:space-between;
@@ -240,7 +226,6 @@ input,textarea,select{font-family:var(--font-body)}
 .filter-chip:hover{border-color:var(--border-2);color:var(--text)}
 .filter-chip.on{background:var(--amber);color:#080810;border-color:var(--amber)}
 
-/* ── Item Grid ────────────────────────────────────────────── */
 .item-grid{
   display:grid;
   grid-template-columns:repeat(auto-fill,minmax(290px,1fr));
@@ -291,13 +276,11 @@ input,textarea,select{font-family:var(--font-body)}
 .card-pill.amber{background:var(--amber-dim);color:var(--amber)}
 .card-time{font-size:0.72rem;color:var(--text-3);margin-left:auto}
 
-/* match bar */
 .match-bar-wrap{margin-top:0.65rem;display:flex;align-items:center;gap:0.6rem}
 .match-bar{flex:1;height:3px;background:var(--border);border-radius:2px}
 .match-fill{height:100%;border-radius:2px;background:var(--amber)}
 .match-pct{font-size:0.72rem;font-weight:700;color:var(--amber);min-width:34px;text-align:right}
 
-/* empty */
 .empty-grid{
   grid-column:1/-1;
   text-align:center;padding:5rem 2rem;
@@ -306,7 +289,6 @@ input,textarea,select{font-family:var(--font-body)}
 .empty-grid-icon{font-size:3.5rem;margin-bottom:1rem;opacity:0.6}
 .empty-grid p{font-size:0.9rem}
 
-/* ── Buttons ──────────────────────────────────────────────── */
 .btn{
   display:inline-flex;align-items:center;gap:0.5rem;
   font-weight:600;font-size:0.88rem;
@@ -351,7 +333,6 @@ input,textarea,select{font-family:var(--font-body)}
 }
 .form-subhead{font-size:0.88rem;color:var(--text-2);margin-bottom:2.5rem;line-height:1.6}
 
-/* Upload zone */
 .drop-zone{
   border:1.5px dashed var(--border-2);
   border-radius:var(--radius-lg);
@@ -377,7 +358,6 @@ input,textarea,select{font-family:var(--font-body)}
   border:1px solid var(--border);
 }
 
-/* AI Panel */
 .ai-panel{
   background:var(--bg-1);
   border:1px solid rgba(245,158,11,0.2);
@@ -407,7 +387,7 @@ input,textarea,select{font-family:var(--font-body)}
 .ai-val{color:var(--text);font-weight:500}
 .ai-val.highlight{color:var(--amber)}
 
-/* Category grid */
+
 .cat-grid{
   display:grid;
   grid-template-columns:repeat(auto-fill,minmax(100px,1fr));
@@ -427,7 +407,6 @@ input,textarea,select{font-family:var(--font-body)}
 .cat-tile.picked{background:var(--amber-dim);border-color:var(--amber);color:var(--amber)}
 .cat-icon-em{display:block;font-size:1.6rem;margin-bottom:0.4rem}
 
-/* Fields */
 .field{margin-bottom:1.25rem}
 .field-label{
   display:block;font-size:0.78rem;font-weight:600;
@@ -452,7 +431,6 @@ input,textarea,select{font-family:var(--font-body)}
 .field-hint{font-size:0.74rem;color:var(--text-3);margin-top:0.35rem;line-height:1.5}
 .field-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
 
-/* ── Match Results ────────────────────────────────────────── */
 .match-results{
   margin-top:2rem;
   background:var(--bg-1);
@@ -498,7 +476,6 @@ input,textarea,select{font-family:var(--font-body)}
 .score-low {color:var(--text-3)}
 .match-score-lbl{font-size:0.68rem;color:var(--text-3);margin-top:0.1rem}
 
-/* ── Success state ────────────────────────────────────────── */
 .success-box{
   text-align:center;padding:3rem 2rem;
   display:none;
@@ -510,7 +487,6 @@ input,textarea,select{font-family:var(--font-body)}
 }
 .success-sub{font-size:0.88rem;color:var(--text-2);margin-bottom:2rem;line-height:1.6}
 
-/* ── Admin ────────────────────────────────────────────────── */
 .admin-wrap{max-width:1280px;margin:0 auto;padding:2.5rem 2rem 5rem}
 .admin-stats-row{
   display:grid;
@@ -532,7 +508,6 @@ input,textarea,select{font-family:var(--font-body)}
 .asc-val.blue {color:var(--blue)}
 .asc-sub{font-size:0.75rem;color:var(--text-3);margin-top:0.4rem}
 
-/* table */
 .table-card{
   background:var(--bg-2);border:1px solid var(--border);
   border-radius:var(--radius-lg);overflow:hidden;margin-bottom:2rem;
@@ -567,7 +542,6 @@ table.admin-tbl{width:100%;border-collapse:collapse}
 .tbl-name{font-weight:600;margin-bottom:0.1rem}
 .tbl-sub{font-size:0.74rem;color:var(--text-2)}
 
-/* status chips */
 .chip{
   display:inline-block;font-size:0.68rem;font-weight:700;
   letter-spacing:0.06em;text-transform:uppercase;
@@ -579,14 +553,12 @@ table.admin-tbl{width:100%;border-collapse:collapse}
 .chip-found   {background:var(--green-dim);color:var(--green)}
 .chip-lost    {background:var(--red-dim);color:var(--red)}
 
-/* cat bar */
 .cat-bar-row{display:flex;align-items:center;gap:0.75rem;margin-bottom:0.6rem;font-size:0.82rem}
 .cat-bar-label{width:90px;color:var(--text-2);flex-shrink:0}
 .cat-bar-track{flex:1;height:5px;background:var(--bg-3);border-radius:3px}
 .cat-bar-fill{height:100%;border-radius:3px;background:var(--amber);transition:width 0.6s ease}
 .cat-bar-count{min-width:24px;text-align:right;color:var(--text-3);font-size:0.75rem}
 
-/* ── Toast stack ──────────────────────────────────────────── */
 .toast-stack{
   position:fixed;bottom:1.5rem;right:1.5rem;
   display:flex;flex-direction:column;gap:0.5rem;
@@ -607,7 +579,6 @@ table.admin-tbl{width:100%;border-collapse:collapse}
 .toast-title{font-weight:700;font-size:0.85rem;margin-bottom:0.15rem}
 .toast-body {font-size:0.78rem;color:var(--text-2);line-height:1.45}
 
-/* ── Loader dots ──────────────────────────────────────────── */
 .dots{display:inline-flex;gap:4px;align-items:center;vertical-align:middle}
 .dots span{
   width:5px;height:5px;background:currentColor;
@@ -616,10 +587,8 @@ table.admin-tbl{width:100%;border-collapse:collapse}
 .dots span:nth-child(2){animation-delay:0.15s}
 .dots span:nth-child(3){animation-delay:0.3s}
 
-/* ── Divider ──────────────────────────────────────────────── */
 .divider{height:1px;background:var(--border);margin:1.5rem 0}
 
-/* ── Animations ───────────────────────────────────────────── */
 @keyframes fade-up{
   from{opacity:0;transform:translateY(20px)}
   to  {opacity:1;transform:translateY(0)}
@@ -638,7 +607,6 @@ table.admin-tbl{width:100%;border-collapse:collapse}
   50%{transform:scale(1.4);opacity:0.7}
 }
 
-/* ── Responsive ───────────────────────────────────────────── */
 @media(max-width:900px){
   .steps-row{grid-template-columns:1fr}
   .step-box{border-right:none;border-bottom:1px solid var(--border)}
