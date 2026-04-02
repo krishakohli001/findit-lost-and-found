@@ -1,9 +1,3 @@
-// ================================================================
-//  js/modules/ui.js
-//  Shared UI helpers
-// ================================================================
-
-// ── Toast notifications ───────────────────────────────────────
 let _stack = null;
 function getStack() {
   if (!_stack) {
@@ -23,7 +17,6 @@ export function toast(title, body = "", type = "t-success", duration = 4500) {
   setTimeout(() => el.remove(), duration);
 }
 
-// ── Dots loader inside a button ───────────────────────────────
 export function setLoading(btn, on, text = "") {
   if (on) {
     btn._orig    = btn.innerHTML;
@@ -35,7 +28,6 @@ export function setLoading(btn, on, text = "") {
   }
 }
 
-// ── Relative time ─────────────────────────────────────────────
 export function reltime(ts) {
   if (!ts) return "just now";
   const d    = ts.toDate ? ts.toDate() : new Date(ts);
@@ -46,20 +38,17 @@ export function reltime(ts) {
   return d.toLocaleDateString("en-IN", { day:"numeric", month:"short" });
 }
 
-// ── Category → emoji ──────────────────────────────────────────
 export function catEmoji(cat) {
   return { ID_card:"🪪", wallet:"👛", electronics:"📱", keys:"🔑",
            notebook:"📓", bag:"🎒", clothing:"👕", accessories:"⌚", other:"📦" }[cat] || "📦";
 }
 
-// ── Confidence colour class ───────────────────────────────────
 export function scoreClass(n) {
   if (n >= 70) return "score-high";
   if (n >= 40) return "score-mid";
   return "score-low";
 }
 
-// ── Render one item card for the feed ─────────────────────────
 export function renderCard(item) {
   const isFound   = item.type === "found";
   const ai        = item.aiAnalysis || {};
@@ -93,7 +82,6 @@ export function renderCard(item) {
     </div>`;
 }
 
-// ── Render AI analysis panel rows ─────────────────────────────
 export function fillAIPanel(ai, panelId = "aiPanel") {
   const p = document.getElementById(panelId);
   if (!p) return;
